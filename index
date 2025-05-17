@@ -1,0 +1,149 @@
+<! DOCTYPE html>
+<html lang="de">
+<Kopf>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=Gerätebreite, initiale-scale=1.0">
+<title>SmartBuild AI Simulation</title>
+<Stil>
+körper {
+Schriftfamilie: Arial, serifenlos;
+Rand: 0;
+Abstand: 10px;
+Hintergrundfarbe: #f0f0f0;
+}
+#dashboard {
+max. Breite: 600px;
+margin: automatisch;
+Hintergrund: weiß;
+Abstand: 20px;
+border-radius: 10px;
+box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+h1 {
+Schriftgröße: 24px;
+text-align: zentriert;
+}
+.label {
+Rand: 10px 0;
+Schriftgröße: 16px;
+}
+Schaltfläche {
+Anzeige: Block;
+Breite: 100%;
+Abstand: 10px;
+Rand: 10px 0;
+Hintergrundfarbe: #007bff;
+Farbe: weiß;
+Rand: keiner;
+border-radius: 5px;
+Schriftgröße: 16px;
+Cursor: Zeiger;
+}
+Schaltfläche:deaktiviert {
+Hintergrundfarbe: #cccccc;
+}
+Leinwand {
+Breite: 100%;
+Höhe: 200px;
+}
+</Stil>
+</Kopf>
+<Körper>
+<div id="Dashboard">
+<h1>SmartBuild KI-Simulation</h1>
+<div class="label" id="time">Zeit: 2025-05-17 00:46 CEST</div>
+<div class="label" id="project">Projekt: Einfamilienhaus Simmerath</div>
+<div class="label" id="progress">Fortschritt: 0%</div>
+<div class="label" id="weather">Wetter: Klar, Temp: 18.0°C, Feuchtigkeit: 45.0%</div>
+<div class="label" id="compliance">Bauvorschriften-Compliance: Brandschutz nach BauGB §34, Energieeffizienz KfW-55</div>
+<div class="label" id="material">Materialstatus: 50m³ Beton, ETA: 06:46, Status: bestellt</div>
+<div class="label" id="robots">Roboter-Status:<br>bot_001: Mauerwerk - Leerlauf (0% fertig)<br>bot_002: elektrisch - Leerlauf (0% fertig)<br>bot_003: Inspektion - Leerlauf (0% fertig)</div>
+<div class="label" id="errors">Warnungen: Keine</div>
+<canvas id="progressChart"></canvas>
+<button id="nextHour">Nächste Stunde</button>
+<button id="quit">Beenden</button>
+</div>
+< Skript src="https://cdn.jsdelivr.net/npm/chart.js"></Skript>
+<Drehbuch>
+const startTime = neues Datum('2025-05-17T00:46:00');
+let currentTime = neues Datum(startTime);
+Fortschritt = 0 lassen;
+let weather = false;
+const sensorData = { Temperatur: 18,0, Luftfeuchtigkeit: 45,0, Fehler: [] };
+const Roboter = [
+{ id: "bot_001", Aufgabe: "Mauerwerk", status: "inaktiv", Fortschritt: 0 },
+{ id: "bot_002", task: "electrical", status: "inaktiv", progress: 0 },
+{ id: "bot_003", task: "inspection", status: "inaktiv", progress: 0 }
+];
+const materialStatus = { Beton: { Menge: 50, eta: new Date(startTime.getTime() + 6*60*60*1000), status: "bestellt" } };
+const progressData = [];
+const timeData = [];
+
+const ctx = document.getElementById('progressChart').getContext('2d');
+const chart = new Chart(ctx, {
+Typ: 'Linie',
+Daten: {
+Bezeichnungen: timeData,
+Datensätze: [{
+label: 'Fortschritt (%)',
+Daten: FortschrittDaten,
+borderColor: '#007bff',
+Füllung: falsch
+}]
+},
+Optionen: {
+Skalen: {
+x: { title: { display: true, text: 'Zeit (Stunden)' }, min: 0, max: 24 },
+y: { title: { display: true, text: 'Fortschritt (%)' }, min: 0, max: 100 }
+}
+}
+});
+
+document.getElementById('nextHour').addEventListener('klick', () => {
+currentTime = neues Datum(currentTime.getTime() + 60*60*1000);
+Fortschritt = Math.min(Fortschritt + 5, 100);
+Wetter = Math.random() < 0,3 && currentTime.getHours() >= 14;
+sensorData.temperature = (15 + Math.random() * 5).toFixed(1);
+sensorData.humidity = (40 + Math.random() * 10).toFixed(1);
+if (Fortschritt > 50 & Math.random() < 0.2 && !sensorData.errors.length) {
+sensorData.errors.push("Riss in Wand erkannt");
+}
+if (currentTime >= materialStatus.concrete.eta && materialStatus.concrete.status === "bestellt") {
+materialStatus.concrete.status = "geliefert";
+alert("Betonlieferung eingetroffen!");
+}
+robots.forEach(Roboter => {
+if (robot.status === "inaktiv" && Fortschritt >= 20) robot.status = "aktiv";
+if (robot.status === "aktiv") {
+robot.progress = Math.min(robot.progress + (5 + Math.random() * 10), 100);
+if (robot.progress >= 100) robot.status = "abgeschlossen";
+}
+});
+timeData.push((currentTime - startTime) / (60*60*1000));
+FortschrittData.push(Fortschritt);
+chart.data.labels = ZeitDaten;
+chart.data.datasets[0].data = FortschrittDaten;
+Diagramm.Update();
+updateDashboard();
+if (Fortschritt >= 100 || currentTime >= new Date(startTime.getTime() + 24*60*60*1000)) {
+document.getElementById('nextHour').disabled = wahr;
+document.getElementById('progress').innerText = "Fortschritt: 100% (Abgeschlossen)";
+alert(`Simulation beendet! Projekt ${PROJECT_NAME} abgeschlossen.`);
+}
+});
+
+document.getElementById('quit').addEventListener('klick', () => {
+Fenster.schließen();
+});
+
+Funktion updateDashboard() {
+document.getElementById('time').innerText = 'Zeit: ${currentTime.toLocaleString('de-DE', { timeZone: 'Europe/Berlin' })}';
+document.getElementById('Fortschritt').innerText = 'Fortschritt: ${Fortschritt}%';
+document.getElementById('Wetter').innerText = 'Wetter: ${Wetter ? 'Regen' : 'Klar'}, Temp: ${sensorData.temperature}°C, Feuchtigkeit: ${sensorData.humidity}%';
+document.getElementById('material').innerText = 'Materialstatus: ${materialStatus.concrete.quantity}m³ Beton, ETA: ${materialStatus.concrete.eta.toLocaleTimeString('de-DE')}, Status: ${materialStatus.concrete.status}';
+document.getElementById('robots').innerHTML = 'Roboter-Status:<br>${robots.map(r => '${r.id}: ${r.task} - ${r.status} (${r.progress.toFixed(0)}% fertig)').join('<br>')}';
+document.getElementById('errors').innerText = `Warnungen: ${sensorData.errors.length ? sensorData.errors.join(', ') : 'Keine'}`;
+}
+</Drehbuch>
+</Körper>
+</html>
