@@ -1,149 +1,233 @@
-<! DOCTYPE html>
-<html lang="de">
-<Kopf>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=Gerätebreite, initiale-scale=1.0">
-<title>SmartBuild AI Simulation</title>
-<Stil>
-körper {
-Schriftfamilie: Arial, serifenlos;
-Rand: 0;
-Abstand: 10px;
-Hintergrundfarbe: #f0f0f0;
-}
-#dashboard {
-max. Breite: 600px;
-margin: automatisch;
-Hintergrund: weiß;
-Abstand: 20px;
-border-radius: 10px;
-box-shadow: 0 0 10px rgba(0,0,0,0.1);
-}
-h1 {
-Schriftgröße: 24px;
-text-align: zentriert;
-}
-.label {
-Rand: 10px 0;
-Schriftgröße: 16px;
-}
-Schaltfläche {
-Anzeige: Block;
-Breite: 100%;
-Abstand: 10px;
-Rand: 10px 0;
-Hintergrundfarbe: #007bff;
-Farbe: weiß;
-Rand: keiner;
-border-radius: 5px;
-Schriftgröße: 16px;
-Cursor: Zeiger;
-}
-Schaltfläche:deaktiviert {
-Hintergrundfarbe: #cccccc;
-}
-Leinwand {
-Breite: 100%;
-Höhe: 200px;
-}
-</Stil>
-</Kopf>
-<Körper>
-<div id="Dashboard">
-<h1>SmartBuild KI-Simulation</h1>
-<div class="label" id="time">Zeit: 2025-05-17 00:46 CEST</div>
-<div class="label" id="project">Projekt: Einfamilienhaus Simmerath</div>
-<div class="label" id="progress">Fortschritt: 0%</div>
-<div class="label" id="weather">Wetter: Klar, Temp: 18.0°C, Feuchtigkeit: 45.0%</div>
-<div class="label" id="compliance">Bauvorschriften-Compliance: Brandschutz nach BauGB §34, Energieeffizienz KfW-55</div>
-<div class="label" id="material">Materialstatus: 50m³ Beton, ETA: 06:46, Status: bestellt</div>
-<div class="label" id="robots">Roboter-Status:<br>bot_001: Mauerwerk - Leerlauf (0% fertig)<br>bot_002: elektrisch - Leerlauf (0% fertig)<br>bot_003: Inspektion - Leerlauf (0% fertig)</div>
-<div class="label" id="errors">Warnungen: Keine</div>
-<canvas id="progressChart"></canvas>
-<button id="nextHour">Nächste Stunde</button>
-<button id="quit">Beenden</button>
-</div>
-< Skript src="https://cdn.jsdelivr.net/npm/chart.js"></Skript>
-<Drehbuch>
-const startTime = neues Datum('2025-05-17T00:46:00');
-let currentTime = neues Datum(startTime);
-Fortschritt = 0 lassen;
-let weather = false;
-const sensorData = { Temperatur: 18,0, Luftfeuchtigkeit: 45,0, Fehler: [] };
-const Roboter = [
-{ id: "bot_001", Aufgabe: "Mauerwerk", status: "inaktiv", Fortschritt: 0 },
-{ id: "bot_002", task: "electrical", status: "inaktiv", progress: 0 },
-{ id: "bot_003", task: "inspection", status: "inaktiv", progress: 0 }
-];
-const materialStatus = { Beton: { Menge: 50, eta: new Date(startTime.getTime() + 6*60*60*1000), status: "bestellt" } };
-const progressData = [];
-const timeData = [];
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartBuild AI Simulation</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 20px;
+    }
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+    .card {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .card h2 {
+      margin-top: 0;
+      font-size: 1.2em;
+      color: #333;
+    }
+    #progressChart {
+      max-width: 100%;
+      height: auto;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px 10px 10px 0;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>SmartBuild AI Simulation</h1>
 
-const ctx = document.getElementById('progressChart').getContext('2d');
-const chart = new Chart(ctx, {
-Typ: 'Linie',
-Daten: {
-Bezeichnungen: timeData,
-Datensätze: [{
-label: 'Fortschritt (%)',
-Daten: FortschrittDaten,
-borderColor: '#007bff',
-Füllung: falsch
-}]
-},
-Optionen: {
-Skalen: {
-x: { title: { display: true, text: 'Zeit (Stunden)' }, min: 0, max: 24 },
-y: { title: { display: true, text: 'Fortschritt (%)' }, min: 0, max: 100 }
-}
-}
-});
+  <div>
+    <button id="nextHourBtn">Next Hour</button>
+    <button id="quitBtn">Quit</button>
+  </div>
 
-document.getElementById('nextHour').addEventListener('klick', () => {
-currentTime = neues Datum(currentTime.getTime() + 60*60*1000);
-Fortschritt = Math.min(Fortschritt + 5, 100);
-Wetter = Math.random() < 0,3 && currentTime.getHours() >= 14;
-sensorData.temperature = (15 + Math.random() * 5).toFixed(1);
-sensorData.humidity = (40 + Math.random() * 10).toFixed(1);
-if (Fortschritt > 50 & Math.random() < 0.2 && !sensorData.errors.length) {
-sensorData.errors.push("Riss in Wand erkannt");
-}
-if (currentTime >= materialStatus.concrete.eta && materialStatus.concrete.status === "bestellt") {
-materialStatus.concrete.status = "geliefert";
-alert("Betonlieferung eingetroffen!");
-}
-robots.forEach(Roboter => {
-if (robot.status === "inaktiv" && Fortschritt >= 20) robot.status = "aktiv";
-if (robot.status === "aktiv") {
-robot.progress = Math.min(robot.progress + (5 + Math.random() * 10), 100);
-if (robot.progress >= 100) robot.status = "abgeschlossen";
-}
-});
-timeData.push((currentTime - startTime) / (60*60*1000));
-FortschrittData.push(Fortschritt);
-chart.data.labels = ZeitDaten;
-chart.data.datasets[0].data = FortschrittDaten;
-Diagramm.Update();
-updateDashboard();
-if (Fortschritt >= 100 || currentTime >= new Date(startTime.getTime() + 24*60*60*1000)) {
-document.getElementById('nextHour').disabled = wahr;
-document.getElementById('progress').innerText = "Fortschritt: 100% (Abgeschlossen)";
-alert(`Simulation beendet! Projekt ${PROJECT_NAME} abgeschlossen.`);
-}
-});
+  <div class="dashboard">
+    <div class="card">
+      <h2>Project Status</h2>
+      <p>Time: <span id="currentTime"></span></p>
+      <p>Progress: <span id="progress">0</span>%</p>
+    </div>
 
-document.getElementById('quit').addEventListener('klick', () => {
-Fenster.schließen();
-});
+    <div class="card">
+      <h2>Weather</h2>
+      <p id="weather">Sunny</p>
+    </div>
 
-Funktion updateDashboard() {
-document.getElementById('time').innerText = 'Zeit: ${currentTime.toLocaleString('de-DE', { timeZone: 'Europe/Berlin' })}';
-document.getElementById('Fortschritt').innerText = 'Fortschritt: ${Fortschritt}%';
-document.getElementById('Wetter').innerText = 'Wetter: ${Wetter ? 'Regen' : 'Klar'}, Temp: ${sensorData.temperature}°C, Feuchtigkeit: ${sensorData.humidity}%';
-document.getElementById('material').innerText = 'Materialstatus: ${materialStatus.concrete.quantity}m³ Beton, ETA: ${materialStatus.concrete.eta.toLocaleTimeString('de-DE')}, Status: ${materialStatus.concrete.status}';
-document.getElementById('robots').innerHTML = 'Roboter-Status:<br>${robots.map(r => '${r.id}: ${r.task} - ${r.status} (${r.progress.toFixed(0)}% fertig)').join('<br>')}';
-document.getElementById('errors').innerText = `Warnungen: ${sensorData.errors.length ? sensorData.errors.join(', ') : 'Keine'}`;
-}
-</Drehbuch>
-</Körper>
+    <div class="card">
+      <h2>Material Delivery</h2>
+      <p>Concrete: <span id="concreteVolume">50</span> m³</p>
+      <p>Status: <span id="materialStatus">Ordered</span></p>
+      <p>ETA: <span id="materialEta">6</span> h</p>
+    </div>
+
+    <div class="card">
+      <h2>Robots</h2>
+      <ul id="robotList"></ul>
+    </div>
+
+    <div class="card">
+      <h2>Errors</h2>
+      <p id="errorDisplay" class="error"></p>
+    </div>
+
+    <div class="card" style="grid-column: 1 / -1;">
+      <h2>Progress Chart</h2>
+      <canvas id="progressChart"></canvas>
+    </div>
+  </div>
+
+  <script>
+    // --- Simulation state ---
+    const startTime = new Date('2025-05-17T00:46:00');
+    let currentTime = new Date(startTime);
+    let progress = 0;
+    let weather = 'Sunny';
+    let temperature = 20;
+    let humidity = 50;
+    let error = '';
+    let robots = [
+      { id: 'bot_001', status: 'Idle' },
+      { id: 'bot_002', status: 'Idle' },
+      { id: 'bot_003', status: 'Idle' }
+    ];
+    let concreteVolume = 50;
+    let materialEta = 6;        // hours
+    let materialStatus = 'Ordered';
+    let simulationEnded = false;
+
+    // --- Chart setup ---
+    const ctx = document.getElementById('progressChart').getContext('2d');
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Progress (%)',
+          data: [],
+          fill: false,
+          borderColor: 'rgb(75, 192, 192)',
+          tension: 0.1
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100
+          }
+        }
+      }
+    });
+
+    // --- Dashboard update ---
+    function updateDashboard() {
+      document.getElementById('currentTime').textContent =
+        currentTime.toLocaleString('en-US');
+      document.getElementById('progress').textContent = progress;
+      document.getElementById('weather').textContent = weather;
+      document.getElementById('concreteVolume').textContent = concreteVolume;
+      document.getElementById('materialStatus').textContent = materialStatus;
+      document.getElementById('materialEta').textContent = materialEta;
+
+      const robotList = document.getElementById('robotList');
+      robotList.innerHTML = '';
+      robots.forEach(robot => {
+        const li = document.createElement('li');
+        li.textContent = `${robot.id}: ${robot.status}`;
+        robotList.appendChild(li);
+      });
+
+      document.getElementById('errorDisplay').textContent = error;
+    }
+
+    // --- Simulation step ---
+    function nextHour() {
+      if (simulationEnded) return;
+
+      // Advance time by 1 hour
+      currentTime.setHours(currentTime.getHours() + 1);
+
+      // Progress +5% (max 100)
+      progress = Math.min(100, progress + 5);
+
+      // Weather: after 14:00 it may rain
+      const hour = currentTime.getHours();
+      if (hour >= 14 && Math.random() < 0.3) {
+        weather = 'Rainy';
+      } else {
+        weather = 'Sunny';
+      }
+
+      // Sensor fluctuations
+      temperature += (Math.random() - 0.5) * 2;
+      humidity += (Math.random() - 0.5) * 5;
+
+      // Crack error after 50% progress
+      if (progress >= 50 && !error && Math.random() < 0.2) {
+        error = 'Crack detected!';
+      }
+
+      // Concrete delivery
+      materialEta -= 1;
+      if (materialEta <= 0) {
+        materialStatus = 'Delivered';
+        concreteVolume = 50; // delivered amount
+      }
+
+      // Robot status based on progress
+      if (progress >= 10 && progress < 30) {
+        robots[0].status = 'Active';
+      } else if (progress >= 30 && progress < 60) {
+        robots[0].status = 'Completed';
+        robots[1].status = 'Active';
+      } else if (progress >= 60 && progress < 90) {
+        robots[1].status = 'Completed';
+        robots[2].status = 'Active';
+      } else if (progress >= 90) {
+        robots[2].status = 'Completed';
+      }
+
+      // Update chart
+      chart.data.labels.push(
+        currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      );
+      chart.data.datasets[0].data.push(progress);
+      chart.update();
+
+      // Update dashboard
+      updateDashboard();
+
+      // Check end condition
+      const elapsedMs = currentTime.getTime() - startTime.getTime();
+      const hoursElapsed = elapsedMs / (1000 * 60 * 60);
+      if (progress >= 100 || hoursElapsed >= 24) {
+        simulationEnded = true;
+        alert('Simulation ended.');
+      }
+    }
+
+    // --- Event listeners ---
+    document.getElementById('nextHourBtn').addEventListener('click', nextHour);
+    document.getElementById('quitBtn').addEventListener('click', () => window.close());
+
+    // --- Initial render ---
+    chart.data.labels.push(
+      startTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+    );
+    chart.data.datasets[0].data.push(0);
+    chart.update();
+    updateDashboard();
+  </script>
+</body>
 </html>
